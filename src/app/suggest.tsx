@@ -22,18 +22,21 @@ const budgets = [
 ];
 
 export default function SuggestScreen() {
-  const { loading } = useRequireAuth();
+  const { user, loading } = useRequireAuth();
 
   const [selectedArea, setSelectedArea] = useState("");
   const [selectedMood, setSelectedMood] = useState("");
   const [selectedBudget, setSelectedBudget] = useState("");
   const [spots, setSpots] = useState<Spot[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [resultLoading, setResultLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const handleSuggest = async () => {
     if (!selectedArea || !selectedMood || !selectedBudget) {
       setErrorMessage("エリア、気分、予算をすべて選択してください。");
+      setSuccessMessage("");
       setSpots([]);
       return;
     }
@@ -42,12 +45,14 @@ export default function SuggestScreen() {
 
     if (!budget) {
       setErrorMessage("予算の選択が正しくありません。");
+      setSuccessMessage("");
       setSpots([]);
       return;
     }
 
     setResultLoading(true);
     setErrorMessage("");
+    setSuccessMessage("");
     setSpots([]);
 
     const { data, error } = await supabase
@@ -79,6 +84,63 @@ export default function SuggestScreen() {
     }
 
     setSpots(sortedSpots);
+  };
+
+  const handleSaveCourse = async () => {
+    if (!user) {
+      setErrorMessage("ログイン状態を確認できませんでした。もう一度ログインしてください。");
+      return;
+    }
+
+    if (spots.length !== 3) {
+      setErrorMessage("保存するには、先に3スポットを提案してください。");
+      return;
+    }
+
+    setSaveLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    const title = `${selectedArea}で過ごす半日コース`;
+
+    const { data: course, error: courseError } = await supabase
+      .from("courses")
+      .insert({
+        user_id: user.id,
+        title,
+        area: selectedArea,
+        mood: selectedMood,
+        budget_label: selectedBudget,
+        memo: null,
+      })
+      .select("id")
+      .single();
+
+    if (courseError) {
+      setSaveLoading(false);
+      setErrorMessage(courseError.message);
+      return;
+    }
+
+    const courseSpotRows = spots.map((spot, index) => ({
+      course_id: course.id,
+      spot_id: spot.id,
+      position: index + 1,
+      note: null,
+    }));
+
+    const { error: courseSpotsError } = await supabase
+      .from("course_spots")
+      .insert(courseSpotRows);
+
+    setSaveLoading(false);
+
+    if (courseSpotsError) {
+      setErrorMessage(courseSpotsError.message);
+      return;
+    }
+
+    setSuccessMessage("コースを保存しました。");
   };
 
   if (loading) {
@@ -173,6 +235,7 @@ export default function SuggestScreen() {
       </View>
 
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+      {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
       <Pressable style={styles.primaryButton} onPress={handleSuggest}>
         <Text style={styles.primaryButtonText}>
@@ -202,8 +265,14 @@ export default function SuggestScreen() {
             </View>
           ))}
 
-          <Pressable style={styles.disabledButton}>
-            <Text style={styles.disabledButtonText}>保存機能は次に実装</Text>
+          <Pressable
+            style={[styles.saveButton, saveLoading && styles.disabledButton]}
+            onPress={handleSaveCourse}
+            disabled={saveLoading}
+          >
+            <Text style={styles.saveButtonText}>
+              {saveLoading ? "保存中..." : "このコースを保存する"}
+            </Text>
           </Pressable>
         </View>
       ) : null}
@@ -289,6 +358,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 16,
   },
+  successText: {
+    fontSize: 14,
+    color: "#111111",
+    backgroundColor: "#eeeeee",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
   primaryButton: {
     backgroundColor: "#111111",
     paddingVertical: 16,
@@ -353,17 +430,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#555555",
   },
-  disabledButton: {
-    backgroundColor: "#eeeeee",
+  saveButton: {
+    backgroundColor: "#111111",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 8,
   },
-  disabledButtonText: {
-    color: "#777777",
+  saveButtonText: {
+    color: "#ffffff",
     fontSize: 15,
     fontWeight: "700",
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   secondaryButton: {
     backgroundColor: "#ffffff",
