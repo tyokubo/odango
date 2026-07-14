@@ -201,6 +201,18 @@ export default function CourseDetailScreen() {
         ))}
       </View>
 
+      <Link
+        href={{
+          pathname: "/courses/[id]/edit",
+          params: { id: courseId },
+        }}
+        asChild
+      >
+        <Pressable style={styles.editButton}>
+          <Text style={styles.editButtonText}>編集する</Text>
+        </Pressable>
+      </Link>
+
       {showDeleteConfirm ? (
         <View style={styles.confirmBox}>
           <Text style={styles.confirmTitle}>このコースを削除しますか？</Text>
@@ -356,6 +368,18 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: "#555555",
     marginBottom: 16,
+  },
+  editButton: {
+    backgroundColor: "#111111",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  editButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "700",
   },
   deleteButton: {
     borderWidth: 1,
