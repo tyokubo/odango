@@ -10,22 +10,47 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    let isMounted = true;
+
+    const checkUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      setEmail(user?.email ?? null);
+      if (!isMounted) {
+        return;
+      }
+
+      if (!user) {
+        setLoading(false);
+        router.replace("/login");
+        return;
+      }
+
+      setEmail(user.email ?? null);
       setLoading(false);
     };
 
-    fetchUser();
-  }, []);
+    checkUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    setEmail(null);
     router.replace("/");
   };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>認証状態を確認中...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -37,9 +62,7 @@ export default function HomeScreen() {
 
       <View style={styles.userBox}>
         <Text style={styles.userLabel}>ログイン中</Text>
-        <Text style={styles.userEmail}>
-          {loading ? "確認中..." : email ?? "未ログイン"}
-        </Text>
+        <Text style={styles.userEmail}>{email}</Text>
       </View>
 
       <Link href="/suggest" asChild>
@@ -67,6 +90,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     justifyContent: "center",
     paddingHorizontal: 24,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#555555",
   },
   title: {
     fontSize: 28,
