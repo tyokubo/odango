@@ -176,6 +176,13 @@ export default function CourseDetailScreen() {
         </Text>
       </View>
 
+      {course.memo ? (
+        <View style={styles.memoBox}>
+          <Text style={styles.memoLabel}>メモ</Text>
+          <Text style={styles.memoText}>{course.memo}</Text>
+        </View>
+      ) : null}
+
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
       <View style={styles.spotList}>
@@ -304,6 +311,24 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#111111",
     fontWeight: "600",
+  },
+  memoBox: {
+    borderWidth: 1,
+    borderColor: "#dddddd",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 28,
+    backgroundColor: "#ffffff",
+  },
+  memoLabel: {
+    fontSize: 13,
+    color: "#777777",
+    marginBottom: 8,
+  },
+  memoText: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: "#111111",
   },
   errorText: {
     fontSize: 14,
