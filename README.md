@@ -184,21 +184,20 @@ npx expo start --web
 
 ### トップ画面
 
-![トップ画面](docs/images/top.png)
+![トップ画面](docs/images/ver2/top.png)
 
 ### ログイン画面
 
-![ログイン画面](docs/images/login.png)
+![ログイン画面](docs/images/ver2/login.png)
 
 ### コース提案画面
 
-![コース提案画面](docs/images/suggest.png)
-![コース提案画面2](docs/images/suggest2.png)
+![コース提案画面](docs/images/ver2/suggest.png)
 
 ### 保存済みコース一覧
 
-![保存済みコース一覧](docs/images/courses.png)
+![保存済みコース一覧](docs/images/ver2/courses.png)
 
 ### コース詳細画面
 
-![コース詳細画面](docs/images/course-detail.png)
+![コース詳細画面](docs/images/ver2/course-detail.png)
