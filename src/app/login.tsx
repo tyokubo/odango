@@ -1,25 +1,77 @@
-import { Link } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Link, useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 export default function LoginScreen() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleLogin = () => {
+    if (!email || !password) {
+      setErrorMessage("メールアドレスとパスワードを入力してください。");
+      return;
+    }
+
+    setErrorMessage("");
+    router.push("/home");
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>ログイン</Text>
+
       <Text style={styles.description}>
-        メールアドレスとパスワードでログインします。
+        メールアドレスとパスワードを入力してください。
       </Text>
 
-      <Link href="/home" asChild>
-        <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>仮でログインする</Text>
-        </Pressable>
-      </Link>
+      <View style={styles.form}>
+        <View>
+          <Text style={styles.label}>メールアドレス</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="example@example.com"
+            placeholderTextColor="#999999"
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+        </View>
 
-      <Link href="/signup" asChild>
-        <Pressable style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>新規登録へ</Text>
+        <View>
+          <Text style={styles.label}>パスワード</Text>
+          <TextInput
+            style={styles.input}
+            value={password}
+            onChangeText={setPassword}
+            placeholder="password"
+            placeholderTextColor="#999999"
+            secureTextEntry
+          />
+        </View>
+
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        ) : null}
+
+        <Pressable style={styles.primaryButton} onPress={handleLogin}>
+          <Text style={styles.primaryButtonText}>ログインする</Text>
         </Pressable>
-      </Link>
+
+        <Link href="/signup" asChild>
+          <Pressable style={styles.secondaryButton}>
+            <Text style={styles.secondaryButtonText}>新規登録へ</Text>
+          </Pressable>
+        </Link>
+      </View>
     </View>
   );
 }
@@ -43,12 +95,37 @@ const styles = StyleSheet.create({
     color: "#555555",
     marginBottom: 40,
   },
+  form: {
+    gap: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#222222",
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#dddddd",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: "#111111",
+    backgroundColor: "#ffffff",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#333333",
+    backgroundColor: "#f2f2f2",
+    padding: 12,
+    borderRadius: 8,
+  },
   primaryButton: {
     backgroundColor: "#111111",
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
-    marginBottom: 12,
   },
   primaryButtonText: {
     color: "#ffffff",
