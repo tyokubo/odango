@@ -176,3 +176,29 @@ npx expo start --web
 * スポットデータの拡充
 * デモ動画作成
 * READMEへのスクリーンショット追加
+
+## スクリーンショット
+
+以下は開発中の仮UIです。  
+現在はMVP機能の実装確認を優先しており、今後UIコンポーネントの共通化、余白調整、スクリーンごとの表示改善を行う予定です。
+
+### トップ画面
+
+![トップ画面](docs/images/top.png)
+
+### ログイン画面
+
+![ログイン画面](docs/images/login.png)
+
+### コース提案画面
+
+![コース提案画面](docs/images/suggest.png)
+![コース提案画面2](docs/images/suggest2.png)
+
+### 保存済みコース一覧
+
+![保存済みコース一覧](docs/images/courses.png)
+
+### コース詳細画面
+
+![コース詳細画面](docs/images/course-detail.png)
