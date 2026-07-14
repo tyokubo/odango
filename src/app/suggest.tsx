@@ -9,24 +9,16 @@ import {
 } from "react-native";
 
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { supabase } from "@/lib/supabase";
+import type { Spot } from "@/types/spot";
 
 const areas = ["上野", "池袋", "清澄白河", "駒込"];
 const moods = ["静かに過ごしたい", "少し歩きたい", "甘いものを食べたい", "展示を見たい"];
-const budgets = ["〜1,000円", "1,000〜2,000円", "2,000〜3,000円"];
 
-const sampleSpots = [
-  {
-    name: "落ち着いたカフェ",
-    description: "最初に立ち寄って、予定を整理する場所。",
-  },
-  {
-    name: "小さな展示スポット",
-    description: "短時間でも楽しめる、軽めの目的地。",
-  },
-  {
-    name: "散歩できる公園",
-    description: "最後に少し歩いて、気分を切り替える場所。",
-  },
+const budgets = [
+  { label: "〜1,000円", max: 1000 },
+  { label: "1,000〜2,000円", max: 2000 },
+  { label: "2,000〜3,000円", max: 3000 },
 ];
 
 export default function SuggestScreen() {
@@ -35,18 +27,58 @@ export default function SuggestScreen() {
   const [selectedArea, setSelectedArea] = useState("");
   const [selectedMood, setSelectedMood] = useState("");
   const [selectedBudget, setSelectedBudget] = useState("");
-  const [showResult, setShowResult] = useState(false);
+  const [spots, setSpots] = useState<Spot[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
+  const [resultLoading, setResultLoading] = useState(false);
 
-  const handleSuggest = () => {
+  const handleSuggest = async () => {
     if (!selectedArea || !selectedMood || !selectedBudget) {
       setErrorMessage("エリア、気分、予算をすべて選択してください。");
-      setShowResult(false);
+      setSpots([]);
       return;
     }
 
+    const budget = budgets.find((item) => item.label === selectedBudget);
+
+    if (!budget) {
+      setErrorMessage("予算の選択が正しくありません。");
+      setSpots([]);
+      return;
+    }
+
+    setResultLoading(true);
     setErrorMessage("");
-    setShowResult(true);
+    setSpots([]);
+
+    const { data, error } = await supabase
+      .from("spots")
+      .select("*")
+      .eq("area", selectedArea)
+      .lte("budget_min", budget.max);
+
+    setResultLoading(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    const sortedSpots = ((data ?? []) as Spot[])
+      .sort((a, b) => {
+        const aMatchesMood = a.mood === selectedMood ? 1 : 0;
+        const bMatchesMood = b.mood === selectedMood ? 1 : 0;
+
+        return bMatchesMood - aMatchesMood;
+      })
+      .slice(0, 3);
+
+    if (sortedSpots.length < 3) {
+      setErrorMessage("条件に合うスポットが不足しています。条件を変えてください。");
+      setSpots([]);
+      return;
+    }
+
+    setSpots(sortedSpots);
   };
 
   if (loading) {
@@ -120,20 +152,20 @@ export default function SuggestScreen() {
         <View style={styles.optionGroup}>
           {budgets.map((budget) => (
             <Pressable
-              key={budget}
+              key={budget.label}
               style={[
                 styles.optionButton,
-                selectedBudget === budget && styles.selectedOptionButton,
+                selectedBudget === budget.label && styles.selectedOptionButton,
               ]}
-              onPress={() => setSelectedBudget(budget)}
+              onPress={() => setSelectedBudget(budget.label)}
             >
               <Text
                 style={[
                   styles.optionText,
-                  selectedBudget === budget && styles.selectedOptionText,
+                  selectedBudget === budget.label && styles.selectedOptionText,
                 ]}
               >
-                {budget}
+                {budget.label}
               </Text>
             </Pressable>
           ))}
@@ -143,24 +175,30 @@ export default function SuggestScreen() {
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
       <Pressable style={styles.primaryButton} onPress={handleSuggest}>
-        <Text style={styles.primaryButtonText}>3スポットを提案する</Text>
+        <Text style={styles.primaryButtonText}>
+          {resultLoading ? "提案中..." : "3スポットを提案する"}
+        </Text>
       </Pressable>
 
-      {showResult ? (
+      {spots.length > 0 ? (
         <View style={styles.resultSection}>
           <Text style={styles.resultTitle}>
             {selectedArea}で過ごす半日コース
           </Text>
 
           <Text style={styles.resultDescription}>
-            「{selectedMood}」気分に合わせた、{selectedBudget}の仮コースです。
+            「{selectedMood}」気分に合わせた、{selectedBudget}のコースです。
           </Text>
 
-          {sampleSpots.map((spot, index) => (
-            <View key={spot.name} style={styles.spotCard}>
+          {spots.map((spot, index) => (
+            <View key={spot.id} style={styles.spotCard}>
               <Text style={styles.spotNumber}>Spot {index + 1}</Text>
               <Text style={styles.spotName}>{spot.name}</Text>
+              <Text style={styles.spotCategory}>{spot.category}</Text>
               <Text style={styles.spotDescription}>{spot.description}</Text>
+              <Text style={styles.spotBudget}>
+                目安：{spot.budget_min.toLocaleString()}〜{spot.budget_max.toLocaleString()}円
+              </Text>
             </View>
           ))}
 
@@ -298,11 +336,21 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
     color: "#111111",
+    marginBottom: 6,
+  },
+  spotCategory: {
+    fontSize: 13,
+    color: "#777777",
     marginBottom: 8,
   },
   spotDescription: {
     fontSize: 14,
     lineHeight: 22,
+    color: "#555555",
+    marginBottom: 10,
+  },
+  spotBudget: {
+    fontSize: 13,
     color: "#555555",
   },
   disabledButton: {
