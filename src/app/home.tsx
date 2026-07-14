@@ -1,46 +1,15 @@
 import { Link, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { supabase } from "@/lib/supabase";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (!user) {
-        setLoading(false);
-        router.replace("/login");
-        return;
-      }
-
-      setEmail(user.email ?? null);
-      setLoading(false);
-    };
-
-    checkUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [router]);
+  const { user, loading } = useRequireAuth();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setEmail(null);
     router.replace("/");
   };
 
@@ -62,7 +31,7 @@ export default function HomeScreen() {
 
       <View style={styles.userBox}>
         <Text style={styles.userLabel}>ログイン中</Text>
-        <Text style={styles.userEmail}>{email}</Text>
+        <Text style={styles.userEmail}>{user?.email}</Text>
       </View>
 
       <Link href="/suggest" asChild>
