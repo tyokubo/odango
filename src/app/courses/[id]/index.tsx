@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   Pressable,
@@ -13,7 +13,9 @@ import { supabase } from "@/lib/supabase";
 import type { Course } from "@/types/course";
 
 export default function CourseDetailScreen() {
+  const router = useRouter();
   const params = useLocalSearchParams();
+
   const courseId =
     typeof params.id === "string"
       ? params.id
@@ -25,6 +27,8 @@ export default function CourseDetailScreen() {
 
   const [course, setCourse] = useState<Course | null>(null);
   const [fetchLoading, setFetchLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -93,6 +97,30 @@ export default function CourseDetailScreen() {
     }
   }, [courseId, loading]);
 
+  const handleDeleteCourse = async () => {
+    if (!courseId) {
+      setErrorMessage("削除するコースIDを取得できませんでした。");
+      return;
+    }
+
+    setDeleteLoading(true);
+    setErrorMessage("");
+
+    const { error } = await supabase
+      .from("courses")
+      .delete()
+      .eq("id", courseId);
+
+    setDeleteLoading(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    router.replace("/courses");
+  };
+
   if (loading || fetchLoading) {
     return (
       <View style={styles.centerContainer}>
@@ -101,12 +129,27 @@ export default function CourseDetailScreen() {
     );
   }
 
-  if (errorMessage || !course) {
+  if (errorMessage && !course) {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.title}>コースを表示できません</Text>
+        <Text style={styles.description}>{errorMessage}</Text>
+
+        <Link href="/courses" asChild>
+          <Pressable style={styles.secondaryButton}>
+            <Text style={styles.secondaryButtonText}>一覧へ戻る</Text>
+          </Pressable>
+        </Link>
+      </View>
+    );
+  }
+
+  if (!course) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.title}>コースが見つかりません</Text>
         <Text style={styles.description}>
-          {errorMessage || "コースが見つかりませんでした。"}
+          削除済み、またはアクセス権限のないコースです。
         </Text>
 
         <Link href="/courses" asChild>
@@ -133,6 +176,8 @@ export default function CourseDetailScreen() {
         </Text>
       </View>
 
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
       <View style={styles.spotList}>
         {course.course_spots.map((courseSpot) => (
           <View key={courseSpot.id} style={styles.spotCard}>
@@ -155,6 +200,40 @@ export default function CourseDetailScreen() {
           </View>
         ))}
       </View>
+
+      {showDeleteConfirm ? (
+        <View style={styles.confirmBox}>
+          <Text style={styles.confirmTitle}>このコースを削除しますか？</Text>
+          <Text style={styles.confirmText}>
+            削除すると、このコースとスポットの並びは元に戻せません。
+          </Text>
+
+          <Pressable
+            style={[styles.deleteConfirmButton, deleteLoading && styles.disabledButton]}
+            onPress={handleDeleteCourse}
+            disabled={deleteLoading}
+          >
+            <Text style={styles.deleteConfirmButtonText}>
+              {deleteLoading ? "削除中..." : "削除する"}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={styles.cancelButton}
+            onPress={() => setShowDeleteConfirm(false)}
+            disabled={deleteLoading}
+          >
+            <Text style={styles.cancelButtonText}>キャンセル</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Pressable
+          style={styles.deleteButton}
+          onPress={() => setShowDeleteConfirm(true)}
+        >
+          <Text style={styles.deleteButtonText}>このコースを削除する</Text>
+        </Pressable>
+      )}
 
       <Link href="/courses" asChild>
         <Pressable style={styles.secondaryButton}>
@@ -214,6 +293,14 @@ const styles = StyleSheet.create({
     color: "#111111",
     fontWeight: "600",
   },
+  errorText: {
+    fontSize: 14,
+    color: "#111111",
+    backgroundColor: "#f2f2f2",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
   spotList: {
     gap: 16,
     marginBottom: 28,
@@ -250,6 +337,66 @@ const styles = StyleSheet.create({
   spotBudget: {
     fontSize: 13,
     color: "#555555",
+  },
+  confirmBox: {
+    borderWidth: 1,
+    borderColor: "#111111",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+  },
+  confirmTitle: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#111111",
+    marginBottom: 8,
+  },
+  confirmText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: "#555555",
+    marginBottom: 16,
+  },
+  deleteButton: {
+    borderWidth: 1,
+    borderColor: "#dddddd",
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  deleteButtonText: {
+    color: "#555555",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  deleteConfirmButton: {
+    backgroundColor: "#111111",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  deleteConfirmButtonText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  cancelButton: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#111111",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    color: "#111111",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   secondaryButton: {
     backgroundColor: "#ffffff",
