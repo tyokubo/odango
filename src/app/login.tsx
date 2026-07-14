@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-
+import { ScreenContainer } from "@/components/ScreenContainer";
 import { supabase } from "@/lib/supabase";
 
 export default function LoginScreen() {
@@ -43,59 +43,59 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>ログイン</Text>
+  <ScreenContainer>
+    <Text style={styles.title}>ログイン</Text>
 
-      <Text style={styles.description}>
-        メールアドレスとパスワードを入力してください。
-      </Text>
+    <Text style={styles.description}>
+      メールアドレスとパスワードを入力してください。
+    </Text>
 
-      <View style={styles.form}>
-        <View>
-          <Text style={styles.label}>メールアドレス</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="example@example.com"
-            placeholderTextColor="#999999"
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-        </View>
-
-        <View>
-          <Text style={styles.label}>パスワード</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="password"
-            placeholderTextColor="#999999"
-            secureTextEntry
-          />
-        </View>
-
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-
-        <Pressable
-          style={[styles.primaryButton, loading && styles.disabledButton]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          <Text style={styles.primaryButtonText}>
-            {loading ? "ログイン中..." : "ログインする"}
-          </Text>
-        </Pressable>
-
-        <Link href="/signup" asChild>
-          <Pressable style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>新規登録へ</Text>
-          </Pressable>
-        </Link>
+    <View style={styles.form}>
+      <View>
+        <Text style={styles.label}>メールアドレス</Text>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="example@example.com"
+          placeholderTextColor="#999999"
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
       </View>
+
+      <View>
+        <Text style={styles.label}>パスワード</Text>
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="password"
+          placeholderTextColor="#999999"
+          secureTextEntry
+        />
+      </View>
+
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+      <Pressable
+        style={[styles.primaryButton, loading && styles.disabledButton]}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.primaryButtonText}>
+          {loading ? "ログイン中..." : "ログインする"}
+        </Text>
+      </Pressable>
+
+      <Link href="/signup" asChild>
+        <Pressable style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>新規登録へ</Text>
+        </Pressable>
+      </Link>
     </View>
-  );
+  </ScreenContainer>
+);
 }
 
 const styles = StyleSheet.create({

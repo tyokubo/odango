@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 
+import { ScreenContainer } from "@/components/ScreenContainer";
 import { supabase } from "@/lib/supabase";
 
 export default function SignupScreen() {
@@ -15,30 +16,33 @@ export default function SignupScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
-    if (!email || !password || !passwordConfirm) {
-      setErrorMessage("すべての項目を入力してください。");
+    if (!email || !password || !passwordConfirmation) {
+      setErrorMessage("メールアドレスとパスワードを入力してください。");
+      setMessage("");
       return;
     }
 
     if (password.length < 6) {
       setErrorMessage("パスワードは6文字以上で入力してください。");
+      setMessage("");
       return;
     }
 
-    if (password !== passwordConfirm) {
+    if (password !== passwordConfirmation) {
       setErrorMessage("パスワードが一致していません。");
+      setMessage("");
       return;
     }
 
     setLoading(true);
     setErrorMessage("");
-    setSuccessMessage("");
+    setMessage("");
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -57,17 +61,15 @@ export default function SignupScreen() {
       return;
     }
 
-    setSuccessMessage(
-      "登録確認メールを送信しました。メールを確認してからログインしてください。"
-    );
+    setMessage("確認メールを送信しました。メールを確認してください。");
   };
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <Text style={styles.title}>新規登録</Text>
 
       <Text style={styles.description}>
-        Odangoを使うためのアカウントを作成します。
+        メールアドレスとパスワードを登録してください。
       </Text>
 
       <View style={styles.form}>
@@ -100,18 +102,19 @@ export default function SignupScreen() {
           <Text style={styles.label}>パスワード確認</Text>
           <TextInput
             style={styles.input}
-            value={passwordConfirm}
-            onChangeText={setPasswordConfirm}
+            value={passwordConfirmation}
+            onChangeText={setPasswordConfirmation}
             placeholder="もう一度入力"
             placeholderTextColor="#999999"
             secureTextEntry
           />
         </View>
 
-        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-        {successMessage ? (
-          <Text style={styles.successText}>{successMessage}</Text>
+        {errorMessage ? (
+          <Text style={styles.errorText}>{errorMessage}</Text>
         ) : null}
+
+        {message ? <Text style={styles.messageText}>{message}</Text> : null}
 
         <Pressable
           style={[styles.primaryButton, loading && styles.disabledButton]}
@@ -129,17 +132,11 @@ export default function SignupScreen() {
           </Pressable>
         </Link>
       </View>
-    </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
   title: {
     fontSize: 32,
     fontWeight: "700",
@@ -150,7 +147,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     color: "#555555",
-    marginBottom: 40,
+    marginBottom: 20,
   },
   form: {
     gap: 20,
@@ -178,10 +175,10 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
   },
-  successText: {
+  messageText: {
     fontSize: 14,
     color: "#111111",
-    backgroundColor: "#eeeeee",
+    backgroundColor: "#f2f2f2",
     padding: 12,
     borderRadius: 8,
   },
