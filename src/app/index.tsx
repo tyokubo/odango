@@ -1,7 +1,11 @@
-import { Link } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
+
+import { AppButton } from "@/components/AppButton";
 
 export default function IndexScreen() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <Text style={styles.appName}>Odango</Text>
@@ -12,17 +16,14 @@ export default function IndexScreen() {
         休日や空き時間に行けるおでかけコースを提案・保存できるアプリです。
       </Text>
 
-      <Link href="/login" asChild>
-        <Pressable style={styles.primaryButton}>
-          <Text style={styles.primaryButtonText}>ログインする</Text>
-        </Pressable>
-      </Link>
-
-      <Link href="/signup" asChild>
-        <Pressable style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>新規登録する</Text>
-        </Pressable>
-      </Link>
+      <View style={styles.buttonGroup}>
+        <AppButton label="ログインする" onPress={() => router.push("/login")} />
+        <AppButton
+          label="新規登録する"
+          variant="secondary"
+          onPress={() => router.push("/signup")}
+        />
+      </View>
     </View>
   );
 }
@@ -53,29 +54,7 @@ const styles = StyleSheet.create({
     color: "#555555",
     marginBottom: 40,
   },
-  primaryButton: {
-    backgroundColor: "#111111",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  primaryButtonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  secondaryButton: {
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#111111",
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  secondaryButtonText: {
-    color: "#111111",
-    fontSize: 16,
-    fontWeight: "700",
+  buttonGroup: {
+    gap: 12,
   },
 });
