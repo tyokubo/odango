@@ -8,16 +8,26 @@ import {
   View,
 } from "react-native";
 
+import { supabase } from "@/lib/supabase";
+
 export default function SignupScreen() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!email || !password || !passwordConfirm) {
       setErrorMessage("すべての項目を入力してください。");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage("パスワードは6文字以上で入力してください。");
       return;
     }
 
@@ -26,8 +36,30 @@ export default function SignupScreen() {
       return;
     }
 
+    setLoading(true);
     setErrorMessage("");
-    router.push("/home");
+    setSuccessMessage("");
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    if (data.session) {
+      router.replace("/home");
+      return;
+    }
+
+    setSuccessMessage(
+      "登録確認メールを送信しました。メールを確認してからログインしてください。"
+    );
   };
 
   return (
@@ -58,7 +90,7 @@ export default function SignupScreen() {
             style={styles.input}
             value={password}
             onChangeText={setPassword}
-            placeholder="password"
+            placeholder="6文字以上"
             placeholderTextColor="#999999"
             secureTextEntry
           />
@@ -70,18 +102,25 @@ export default function SignupScreen() {
             style={styles.input}
             value={passwordConfirm}
             onChangeText={setPasswordConfirm}
-            placeholder="password"
+            placeholder="もう一度入力"
             placeholderTextColor="#999999"
             secureTextEntry
           />
         </View>
 
-        {errorMessage ? (
-          <Text style={styles.errorText}>{errorMessage}</Text>
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+        {successMessage ? (
+          <Text style={styles.successText}>{successMessage}</Text>
         ) : null}
 
-        <Pressable style={styles.primaryButton} onPress={handleSignup}>
-          <Text style={styles.primaryButtonText}>登録する</Text>
+        <Pressable
+          style={[styles.primaryButton, loading && styles.disabledButton]}
+          onPress={handleSignup}
+          disabled={loading}
+        >
+          <Text style={styles.primaryButtonText}>
+            {loading ? "登録中..." : "登録する"}
+          </Text>
         </Pressable>
 
         <Link href="/login" asChild>
@@ -134,8 +173,15 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: "#333333",
+    color: "#111111",
     backgroundColor: "#f2f2f2",
+    padding: 12,
+    borderRadius: 8,
+  },
+  successText: {
+    fontSize: 14,
+    color: "#111111",
+    backgroundColor: "#eeeeee",
     padding: 12,
     borderRadius: 8,
   },
@@ -144,6 +190,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   primaryButtonText: {
     color: "#ffffff",

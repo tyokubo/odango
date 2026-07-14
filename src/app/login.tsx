@@ -8,20 +8,38 @@ import {
   View,
 } from "react-native";
 
+import { supabase } from "@/lib/supabase";
+
 export default function LoginScreen() {
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       setErrorMessage("メールアドレスとパスワードを入力してください。");
       return;
     }
 
+    setLoading(true);
     setErrorMessage("");
-    router.push("/home");
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setErrorMessage(error.message);
+      return;
+    }
+
+    router.replace("/home");
   };
 
   return (
@@ -58,12 +76,16 @@ export default function LoginScreen() {
           />
         </View>
 
-        {errorMessage ? (
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        ) : null}
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-        <Pressable style={styles.primaryButton} onPress={handleLogin}>
-          <Text style={styles.primaryButtonText}>ログインする</Text>
+        <Pressable
+          style={[styles.primaryButton, loading && styles.disabledButton]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          <Text style={styles.primaryButtonText}>
+            {loading ? "ログイン中..." : "ログインする"}
+          </Text>
         </Pressable>
 
         <Link href="/signup" asChild>
@@ -116,7 +138,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 14,
-    color: "#333333",
+    color: "#111111",
     backgroundColor: "#f2f2f2",
     padding: 12,
     borderRadius: 8,
@@ -126,6 +148,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
   primaryButtonText: {
     color: "#ffffff",
