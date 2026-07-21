@@ -246,7 +246,7 @@ export default function CourseDetailScreen() {
 
       <View style={styles.mapButtonContainer}>
         <AppButton
-          label="アプリ内で位置関係を見る"
+          title="アプリ内で位置関係を見る"
           onPress={() =>
             router.push({
               pathname: "/courses/[id]/map",
@@ -516,7 +516,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
-  mapButtonContainer: {
-    marginBottom: 12,
-  },
+
 });
