@@ -11,6 +11,10 @@ import {
 import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { supabase } from "@/lib/supabase";
 import type { Course } from "@/types/course";
+import * as Linking from "expo-linking";
+
+import { AppButton } from "@/components/AppButton";
+import { buildGoogleMapsRouteUrl } from "@/lib/googleMaps";
 
 export default function CoursesScreen() {
   const { loading } = useRequireAuth();
@@ -48,6 +52,8 @@ export default function CoursesScreen() {
               budget_min,
               budget_max,
               google_maps_url,
+              latitude,
+              longitude,
               created_at
             )
           )
@@ -62,12 +68,14 @@ export default function CoursesScreen() {
         return;
       }
 
-      const formattedCourses = ((data ?? []) as Course[]).map((course) => ({
-        ...course,
-        course_spots: [...course.course_spots].sort(
-          (a, b) => a.position - b.position
-        ),
-      }));
+      const formattedCourses = ((data ?? []) as unknown as Course[]).map(
+        (course) => ({
+          ...course,
+          course_spots: [...course.course_spots].sort(
+            (a, b) => a.position - b.position
+          ),
+        })
+      );
 
       setCourses(formattedCourses);
     };

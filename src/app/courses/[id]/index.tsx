@@ -1,3 +1,4 @@
+import * as Linking from "expo-linking";
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -8,7 +9,9 @@ import {
   View,
 } from "react-native";
 
+import { AppButton } from "@/components/AppButton";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
+import { buildGoogleMapsRouteUrl } from "@/lib/googleMaps";
 import { supabase } from "@/lib/supabase";
 import type { Course } from "@/types/course";
 
@@ -67,6 +70,8 @@ export default function CourseDetailScreen() {
               budget_min,
               budget_max,
               google_maps_url,
+              latitude,
+              longitude,
               created_at
             )
           )
@@ -82,12 +87,16 @@ export default function CourseDetailScreen() {
         return;
       }
 
-      const formattedCourse = {
-        ...(data as Course),
-        course_spots: [...(data as Course).course_spots].sort(
+      const parsedCourse = data as unknown as Course;
+
+      const formattedCourse: Course = {
+        ...parsedCourse,
+        course_spots: [...parsedCourse.course_spots].sort(
           (a, b) => a.position - b.position
         ),
       };
+
+      setCourse(formattedCourse);
 
       setCourse(formattedCourse);
     };
@@ -119,6 +128,33 @@ export default function CourseDetailScreen() {
     }
 
     router.replace("/courses");
+  };
+
+  const handleOpenGoogleMaps = async () => {
+    if (!course) {
+      return;
+    }
+
+    const orderedSpots = [...course.course_spots]
+      .sort((a, b) => a.position - b.position)
+      .map((courseSpot) => courseSpot.spots);
+
+    const routeUrl = buildGoogleMapsRouteUrl(orderedSpots);
+
+    if (!routeUrl) {
+      setErrorMessage(
+        "ルートを表示するための位置情報が不足しています。"
+      );
+      return;
+    }
+
+    setErrorMessage("");
+
+    try {
+      await Linking.openURL(routeUrl);
+    } catch {
+      setErrorMessage("Google Mapsを開けませんでした。");
+    }
   };
 
   if (loading || fetchLoading) {
@@ -208,6 +244,12 @@ export default function CourseDetailScreen() {
         ))}
       </View>
 
+      <View style={styles.mapButtonContainer}>
+        <AppButton
+          title="Google Mapsでルートを見る"
+          onPress={handleOpenGoogleMaps}
+        />
+      </View>
       <Link
         href={{
           pathname: "/courses/[id]/edit",
@@ -459,5 +501,8 @@ const styles = StyleSheet.create({
     color: "#111111",
     fontSize: 16,
     fontWeight: "700",
+  },
+  mapButtonContainer: {
+    marginBottom: 12,
   },
 });

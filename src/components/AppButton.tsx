@@ -1,26 +1,35 @@
-import { Pressable, StyleSheet, Text } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 type AppButtonProps = {
-  label: string;
-  onPress: () => void;
-  variant?: "primary" | "secondary" | "ghost";
+  title: string;
+  onPress: () => void | Promise<void>;
+  variant?: "primary" | "secondary";
   disabled?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function AppButton({
-  label,
+  title,
   onPress,
   variant = "primary",
   disabled = false,
+  style,
 }: AppButtonProps) {
+  const isSecondary = variant === "secondary";
+
   return (
     <Pressable
       style={[
         styles.button,
-        variant === "primary" && styles.primaryButton,
-        variant === "secondary" && styles.secondaryButton,
-        variant === "ghost" && styles.ghostButton,
+        isSecondary ? styles.secondaryButton : styles.primaryButton,
         disabled && styles.disabledButton,
+        style,
       ]}
       onPress={onPress}
       disabled={disabled}
@@ -28,12 +37,12 @@ export function AppButton({
       <Text
         style={[
           styles.buttonText,
-          variant === "primary" && styles.primaryButtonText,
-          variant === "secondary" && styles.secondaryButtonText,
-          variant === "ghost" && styles.ghostButtonText,
+          isSecondary
+            ? styles.secondaryButtonText
+            : styles.primaryButtonText,
         ]}
       >
-        {label}
+        {title}
       </Text>
     </Pressable>
   );
@@ -41,7 +50,9 @@ export function AppButton({
 
 const styles = StyleSheet.create({
   button: {
+    width: "100%",
     paddingVertical: 16,
+    paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: "center",
   },
@@ -52,9 +63,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#111111",
-  },
-  ghostButton: {
-    backgroundColor: "#ffffff",
   },
   disabledButton: {
     opacity: 0.5,
@@ -68,8 +76,5 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: "#111111",
-  },
-  ghostButtonText: {
-    color: "#555555",
   },
 });
