@@ -246,6 +246,17 @@ export default function CourseDetailScreen() {
 
       <View style={styles.mapButtonContainer}>
         <AppButton
+          label="アプリ内で位置関係を見る"
+          onPress={() =>
+            router.push({
+              pathname: "/courses/[id]/map",
+              params: {
+                id: course.id,
+              },
+            })
+          }
+        />
+        <AppButton
           title="Google Mapsでルートを見る"
           onPress={handleOpenGoogleMaps}
         />
@@ -395,6 +406,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#777777",
     marginBottom: 8,
+  },
+  mapButtonContainer: {
+    marginBottom: 12,
   },
   spotName: {
     fontSize: 18,
