@@ -255,6 +255,7 @@ export default function CourseDetailScreen() {
               },
             })
           }
+          style={{ marginBottom: 12 }}
         />
         <AppButton
           title="Google Mapsでルートを見る"

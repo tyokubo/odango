@@ -17,9 +17,9 @@ export default function IndexScreen() {
       </Text>
 
       <View style={styles.buttonGroup}>
-        <AppButton label="ログインする" onPress={() => router.push("/login")} />
+        <AppButton title="ログインする" onPress={() => router.push("/login")} />
         <AppButton
-          label="新規登録する"
+          title="新規登録する"
           variant="secondary"
           onPress={() => router.push("/signup")}
         />
